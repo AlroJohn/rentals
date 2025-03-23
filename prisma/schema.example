@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      Json?     // Using JSON to allow for complex name objects if needed.
+  email     String    @unique
+  phone     String?
+  role      UserRole  @default(CLIENT) // Default role is CLIENT (consumer).
+  createdAt DateTime  @default(now())
+
+  // Relationships:
+  // Sellers can post multiple rental listings.
+  rentals   Rental[]
+
+  // Clients (consumers) make bookings.
+  bookings  Booking[]
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+
+  // One category groups many rental listings.
+  rentals     Rental[]
+}
+
+model Rental {
+  id          String    @id @default(uuid())
+  title       String    // e.g., "This is a Rentals" or a descriptive title.
+  description String
+  price       Float
+  available   Boolean   @default(true)
+  location    String?
+  condition   String?   // e.g., "New", "Used", "Excellent", etc.
+  images      String[]  // Array of image URLs.
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  status      Status    @default(AVAILABLE) // Default status is AVAILABLE.
+  // Relationships:
+  category    Category  @relation(fields: [categoryId], references: [id])
+  categoryId  String
+
+  // The user that creates this rental listing should be a SELLER.
+  user        User?     @relation(fields: [userId], references: [id])
+  userId      String?
+
+  // A rental may have several bookings.
+  bookings    Booking[]
+
+  // Note: In your application logic, enforce that only users with role SELLER can create rental listings.
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  
+  // Relationships:
+  rental    Rental   @relation(fields: [rentalId], references: [id])
+  rentalId  String
+
+  // The user making a booking must have the role CLIENT (consumer).
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+
+  // Each booking requires the user to agree to the terms and conditions.
+  agreement Agreement?
+
+  // Note: In your application logic, ensure that only users with role CLIENT can create bookings.
+}
+
+model Agreement {
+  id              String   @id @default(uuid())
+  bookingId       String   @unique
+  terms           String   // The full terms and conditions text for the booking.
+  acceptedByUser  Boolean  @default(false) // Must be true when the client accepts.
+  acceptedByOwner Boolean  @default(false) // Optional: can be used if the seller must also accept.
+  signedAt        DateTime? // Timestamp when the agreement was accepted.
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // One-to-one relationship with Booking.
+  booking         Booking  @relation(fields: [bookingId], references: [id])
+}
+
+
+
+enum UserRole {
+  CLIENT    // Consumers who can book rentals.
+  SELLER    // Users who can post rental listings.
+  SUPERADMIN // Users who manage specific parts of the system.
+  ADMIN     // Users who have full management rights.
+}
+
+enum Status {
+  AVAILABLE //if the quantity is greater than 0
+  UNAVAILABLE //if the quantity is 0
+  RENTED //if the item is rented
+  BOOKED //if the item is booked
+}

@@ -1,7 +1,13 @@
-<script setup></script>
+<script setup lang="ts">
+const layout = "default";
+</script>
 
 <template>
-  <div>
-    <Button>Click me</Button>
-  </div>
+  <NuxtLayout :name="layout">
+    <div class="flex justify-center items-center h-screen">
+      <NuxtLink to="/admin">
+        <Button>Click to About</Button>
+      </NuxtLink>
+    </div>
+  </NuxtLayout>
 </template>
