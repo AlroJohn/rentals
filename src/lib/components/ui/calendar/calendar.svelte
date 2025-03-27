@@ -2,6 +2,13 @@
 	import { Calendar as CalendarPrimitive } from "bits-ui";
 	import * as Calendar from "./index.js";
 	import { cn } from "$lib/utils.js";
+	import { createEventDispatcher } from 'svelte';
+
+const dispatch = createEventDispatcher();
+
+function handleDateSelect(date: Date | undefined) {
+  dispatch('date-select', { date }); // Dispatch the custom event
+}
 
 	type $$Props = CalendarPrimitive.Props;
 

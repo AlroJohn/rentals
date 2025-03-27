@@ -5,8 +5,10 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			$ui: 'src/lib/components/ui',
-			$custom: 'src/custom'
+			$lib: './src/lib',
+			$components: './src/lib/components/ui',
+			$utils: './src/lib/utils',
+			$custom: './src/custom'
 		}
 	},
 	preprocess: vitePreprocess()
